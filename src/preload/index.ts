@@ -1,22 +1,32 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+// src/preload/index.ts
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
-
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-} else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+// 1. Alacağımız verinin tipini (şeklini) tanımla
+export interface TelemetryData {
+  gps: { lat: number; lon: number }
+  altitude: number
+  battery: number
+  speed: number
 }
+
+// 2. Güvenli köprüyü kur: 'window.api'
+contextBridge.exposeInMainWorld('api', {
+  /**
+   * Main process'ten gelen 'data-update' kanalını dinler.
+   * Gelen veriyi bir callback fonksiyonu ile React bileşenine iletir.
+   */
+  onDataUpdate: (callback: (data: TelemetryData) => void) => {
+    
+    // 'data-update' kanalını dinle
+    const listener = (event: IpcRendererEvent, data: TelemetryData) => {
+      callback(data)
+    }
+    ipcRenderer.on('data-update', listener)
+
+    // React bileşeni "unmount" olduğunda (ekrandan kalktığında)
+    // bu dinleyiciyi bellekten temizlemek için bir 'cleanup' fonksiyonu döndür.
+    return () => {
+      ipcRenderer.removeListener('data-update', listener)
+    }
+  }
+})

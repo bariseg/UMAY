@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -6,15 +6,25 @@ import icon from '../../resources/icon.png?asset'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1200,
+    height: 800,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true //burasini silmemiz gerekebilir baris
     }
+  })
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': ["script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'"]
+      }
+    })
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -33,7 +43,44 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Pencere yüklendiğinde simülasyonu başlat
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Renderer yüklendi, simülasyon başlıyor.')
+    startDataSimulation(mainWindow) // Fonksiyonu burada çağır
+  })
+
 }
+
+const startDataSimulation = (window: BrowserWindow) => {
+  let altitude = 100
+  let battery = 12.6
+  let lat = 41.015137 // İstanbul
+  let lon = 28.97953
+
+  setInterval(() => {
+    // Veriyi rastgele güncelle
+    altitude += (Math.random() - 0.5) * 5
+    battery -= 0.001
+    lat += 0.0001 * (Math.random() - 0.5)
+    lon += 0.0001 * (Math.random() - 0.5)
+
+    const telemetryData = {
+      gps: { lat, lon },
+      altitude: parseFloat(altitude.toFixed(2)),
+      battery: parseFloat(battery.toFixed(2)),
+      speed: parseFloat((20 + (Math.random() - 0.5) * 2).toFixed(2))
+    }
+
+    // Veriyi 'data-update' kanalı üzerinden Renderer'a gönder
+    if (window && !window.isDestroyed()) {
+      window.webContents.send('data-update', telemetryData)
+    }
+  }, 500) // Saniyede 2 kez
+}
+
+
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
