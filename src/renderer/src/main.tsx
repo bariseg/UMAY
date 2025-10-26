@@ -7,9 +7,8 @@ import { SciChartSurface } from 'scichart'
 
 
 SciChartSurface.configure({
-  dataUrl: '/scichart2d.js',
   wasmUrl: '/scichart2d.wasm'
-} as any)
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

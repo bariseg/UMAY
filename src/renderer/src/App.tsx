@@ -2,6 +2,7 @@
 import { useState, useEffect, JSX } from 'react'
 import { TelemetryData } from './components/interfaces'
 import AltitudeChart from './components/AltitudeChart'
+import CesiumMap from './components/CeisumMap'
 // import CesiumMap from './components/CesiumMap' // Bir sonraki adımda
 
 // Preload'da 'window.api' olarak expose ettiğimiz API'a eriş
@@ -39,21 +40,35 @@ function App(): JSX.Element {
         </div>
       </header>
 
-      {/* ANA İÇERİK (HARİTA VE GRAFİKLER) */}
       <main className="main-content">
-        {/* HARİTA PANELİ (Şimdilik boş) */}
+
+        {/* HARİTA PANELİ */}
         <div className="panel-map">
           <h2>3D Harita (Cesium)</h2>
-          {/* <CesiumMap telemetry={telemetry} /> */}
+
+          {/* YENİ WRAPPER (SARMALAYICI) DIV */}
+          <div className="component-wrapper">
+            <CesiumMap telemetry={telemetry} />
+          </div>
+
         </div>
 
         {/* GRAFİK PANELİ */}
         <div className="panel-charts">
           <h3>İrtifa Grafiği</h3>
-          {/* Veriyi 'telemetry' prop'u ile grafiğe yolla */}
-          <AltitudeChart telemetry={telemetry} />
+
+          {/* YENİ WRAPPER (SARMALAYICI) DIV */}
+          <div className="component-wrapper">
+            <AltitudeChart telemetry={telemetry} />
+          </div>
+
+          {/* TODO: Diğer grafikler de buraya eklenebilir */}
+          {/* <h3>Batarya Grafiği</h3>
+          <div className="component-wrapper">
+             <BatteryChart telemetry={telemetry} /> 
+          </div>
+          */}
         </div>
-        
       </main>
     </div>
   )

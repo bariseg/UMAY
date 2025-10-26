@@ -14,7 +14,8 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: true //burasini silmemiz gerekebilir baris
+      contextIsolation: true, //burasini silmemiz gerekebilir baris
+      webSecurity: false
     }
   })
 
@@ -22,7 +23,14 @@ function createWindow(): void {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': ["script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'"]
+        'Content-Security-Policy': [
+          "default-src 'self';", // Varsayılan olarak sadece kendi kaynaklarına güven
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval';", // Scriptler: Kendisi, inline (HMR), eval (Cesium), WASM (SciChart)
+          "worker-src 'self' blob:;", // Worker'lar: Kendisi ve blob (Cesium)
+          "img-src 'self' data: blob: *;", // Görseller: Kendisi, data:, blob: ve herhangi bir sunucu (*) (Cesium harita karoları için)
+          "connect-src 'self' blob: *;", // Bağlantılar: Kendisi, blob: ve herhangi bir sunucu (*) (Cesium veri/arazi sunucuları için)
+          "style-src 'self' 'unsafe-inline';" // Stiller: Kendisi ve inline (kütüphaneler)
+        ].join(' ')
       }
     })
   })
@@ -47,7 +55,7 @@ function createWindow(): void {
   // Pencere yüklendiğinde simülasyonu başlat
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('Renderer yüklendi, simülasyon başlıyor.')
-    startDataSimulation(mainWindow) // Fonksiyonu burada çağır
+    //startDataSimulation(mainWindow) // Fonksiyonu burada çağır
   })
 
 }

@@ -38,13 +38,13 @@ const AltitudeChart: React.FC<AltitudeChartProps> = ({ telemetry }) => {
 
             // X Ekseni (Zaman/Index)
             const xAxis = new NumericAxis(wasmContext, {
-                autoRange: EAutoRange.Always, // X ekseni veriyi takip etsin
+                autoRange: EAutoRange.Never, // X ekseni veriyi takip etsin
                 visibleRangeLimit: new NumberRange(0, MAX_DATA_POINTS)
             })
 
             // Y Ekseni (İrtifa)
             const yAxis = new NumericAxis(wasmContext, {
-                autoRange: EAutoRange.Always // Y ekseni veriye göre zoom yapsın
+                autoRange: EAutoRange.Never // Y ekseni veriye göre zoom yapsın
             })
 
             sciChartSurface.xAxes.add(xAxis)
