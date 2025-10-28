@@ -55,7 +55,7 @@ function createWindow(): void {
   // Pencere yüklendiğinde simülasyonu başlat
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('Renderer yüklendi, simülasyon başlıyor.')
-    //startDataSimulation(mainWindow) // Fonksiyonu burada çağır
+    startDataSimulation(mainWindow) // Fonksiyonu burada çağır
   })
 
 }
@@ -68,10 +68,10 @@ const startDataSimulation = (window: BrowserWindow) => {
 
   setInterval(() => {
     // Veriyi rastgele güncelle
-    altitude += (Math.random() - 0.5) * 5
+    altitude += (Math.random() - 0.5) * 1
     battery -= 0.001
-    lat += 0.0001 * (Math.random() - 0.5)
-    lon += 0.0001 * (Math.random() - 0.5)
+    lat += 0.00003 * (Math.random() - 0.5)
+    lon += 0.00003 * (Math.random() - 0.5)
 
     const telemetryData = {
       gps: { lat, lon },

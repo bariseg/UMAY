@@ -1,42 +1,37 @@
 // src/renderer/src/App.tsx
 import { useState, useEffect, JSX } from 'react'
 import { TelemetryData } from './components/interfaces'
-import AltitudeChart from './components/AltitudeChart'
 import CesiumMap from './components/CeisumMap'
-// import CesiumMap from './components/CesiumMap' // Bir sonraki adımda
+import GenericChart from './components/GenericChart'
 
-// Preload'da 'window.api' olarak expose ettiğimiz API'a eriş
 const api = window.api
 
 function App(): JSX.Element {
   // Gelen telemetri verisini tutacağımız 'state'
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null)
-
-  // Bu useEffect, bileşen yüklendiğinde SADECE BİR KEZ çalışır
   useEffect(() => {
-    // Main process'ten gelen 'data-update' olayını dinle
     const cleanupListener = api.onDataUpdate((data) => {
-      // Gelen her yeni veride 'telemetry' state'ini güncelle
       setTelemetry(data)
     })
-
-    // Bileşen ekrandan kaldırılırsa (unmount) listener'ı temizle
-    // Bu, bellek sızıntılarını (memory leak) önler.
     return () => {
       cleanupListener()
     }
-  }, []) // Boş dependency array '[]' = "sadece bir kez çalış"
+  }, [])
 
   return (
     <div className="layout-container">
       {/* ÜST BAR */}
       <header className="header-bar">
-        <h1>UMAY İHA Yer İstasyonu</h1>
+        <h1>UMAY Sistem - GTU KUZGUN</h1>
+        <span>Baglanti</span>
+
         <div className="telemetry-display">
+
           {/* Anlık sayısal verileri göster */}
           <span>İrtifa: {telemetry?.altitude.toFixed(1) ?? '...'} m</span>
           <span>Batarya: {telemetry?.battery.toFixed(2) ?? '...'} V</span>
           <span>Hız: {telemetry?.speed.toFixed(1) ?? '...'} km/s</span>
+
         </div>
       </header>
 
@@ -55,19 +50,32 @@ function App(): JSX.Element {
 
         {/* GRAFİK PANELİ */}
         <div className="panel-charts">
-          <h3>İrtifa Grafiği</h3>
 
+          <h3>Grafikler</h3>
           {/* YENİ WRAPPER (SARMALAYICI) DIV */}
           <div className="component-wrapper">
-            <AltitudeChart telemetry={telemetry} />
+            <GenericChart
+              id="altitude"
+              telemetry={telemetry}
+              valueKey="altitude"
+              color="#a70404ff"
+              yRange={[0, 150]}
+              title="İrtifa Grafiği"
+            />
           </div>
 
-          {/* TODO: Diğer grafikler de buraya eklenebilir */}
-          {/* <h3>Batarya Grafiği</h3>
           <div className="component-wrapper">
-             <BatteryChart telemetry={telemetry} /> 
+            <GenericChart
+              id="battery"
+              telemetry={telemetry}
+              valueKey="battery"
+              color="#00bfff"
+              yRange={[0, 20]}
+              title="Batarya Voltajı"
+            />
           </div>
-          */}
+
+
         </div>
       </main>
     </div>

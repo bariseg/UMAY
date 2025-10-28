@@ -84,7 +84,18 @@ const CesiumMap: React.FC<MapProps> = ({ telemetry }) => {
 
   }, [telemetry]) // 'telemetry' her değiştiğinde bu fonksiyonu tetikle
 
-  return <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
+  return (
+    <div
+      ref={mapDivRef}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%'
+      }}
+    />
+  )
 }
 
 export default CesiumMap
