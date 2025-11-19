@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { TelemetryData } from '../preload'
 
 function createWindow(): void {
   // Create the browser window.
@@ -61,23 +62,34 @@ function createWindow(): void {
 }
 
 const startDataSimulation = (window: BrowserWindow) => {
-  let altitude = 100
+  let altitude = 10
   let battery = 12.6
   let lat = 41.015137 // İstanbul
   let lon = 28.97953
+  let heading = 0 // Başlangıç yönü (0 = Kuzey)
 
   setInterval(() => {
     // Veriyi rastgele güncelle
     altitude += (Math.random() - 0.5) * 1
     battery -= 0.001
-    lat += 0.00003 * (Math.random() - 0.5)
-    lon += 0.00003 * (Math.random() - 0.5)
+    
+    // Heading'i yavaşça döndür (simüle edilmiş hareket)
+    heading += (Math.random() - 0.5) * 5 // Her turda -2.5 ile +2.5 derece arası değişim
+    if (heading < 0) heading += 360
+    if (heading >= 360) heading -= 360
+    
+    // GPS konumunu heading yönünde hareket ettir
+    const headingRad = (heading * Math.PI) / 180
+    const moveDistance = 0.00002 // ~2 metre
+    lat += moveDistance * Math.cos(headingRad)
+    lon += moveDistance * Math.sin(headingRad)
 
-    const telemetryData = {
+    const telemetryData : TelemetryData = {
       gps: { lat, lon },
       altitude: parseFloat(altitude.toFixed(2)),
       battery: parseFloat(battery.toFixed(2)),
-      speed: parseFloat((20 + (Math.random() - 0.5) * 2).toFixed(2))
+      speed: parseFloat((20 + (Math.random() - 0.5) * 2).toFixed(2)),
+      heading: parseFloat(heading.toFixed(1)) // Yön açısı (0-360 derece)
     }
 
     // Veriyi 'data-update' kanalı üzerinden Renderer'a gönder

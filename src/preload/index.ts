@@ -7,6 +7,8 @@ export interface TelemetryData {
   altitude: number
   battery: number
   speed: number
+  heading: number // Yön açısı (derece, 0-360, 0=Kuzey, 90=Doğu, 180=Güney, 270=Batı)
+
 }
 
 // 2. Güvenli köprüyü kur: 'window.api'
@@ -16,7 +18,7 @@ contextBridge.exposeInMainWorld('api', {
    * Gelen veriyi bir callback fonksiyonu ile React bileşenine iletir.
    */
   onDataUpdate: (callback: (data: TelemetryData) => void) => {
-    
+
     // 'data-update' kanalını dinle
     const listener = (event: IpcRendererEvent, data: TelemetryData) => {
       callback(data)

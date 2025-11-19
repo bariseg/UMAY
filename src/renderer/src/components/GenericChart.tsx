@@ -17,6 +17,8 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
     const sciChartRef = useRef<SciChartSurface | null>(null)
     const dataSeriesRef = useRef<XyDataSeries | null>(null)
     const chartDivRef = useRef<HTMLDivElement>(null)
+    const maxValueRef = useRef<number>(0)
+    const yAxisRef = useRef<NumericAxis | null>(null)
 
     useLayoutEffect(() => {
         const initSciChart = async () => {
@@ -26,14 +28,14 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
 
             const xAxis = new NumericAxis(wasmContext, {
                 autoRange: EAutoRange.Always,
-                visibleRangeLimit: new NumberRange(0, MAX_DATA_POINTS)
             })
 
             const yAxis = new NumericAxis(wasmContext, {
-                visibleRange: props.yRange ? new NumberRange(...props.yRange) : undefined,
-                autoRange: props.yRange ? EAutoRange.Never : EAutoRange.Always,
+                visibleRange: props.yRange ? new NumberRange(...props.yRange) : new NumberRange(0, 100),
+                autoRange: EAutoRange.Always,
                 axisTitle: props.yLabel || ''
             })
+            yAxisRef.current = yAxis
 
             sciChartSurface.xAxes.add(xAxis)
             sciChartSurface.yAxes.add(yAxis)
@@ -61,7 +63,7 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
     }, [])
 
     useEffect(() => {
-        if (!props.telemetry || !dataSeriesRef.current) {
+        if (!props.telemetry || !dataSeriesRef.current || !yAxisRef.current) {
             return
         }
         const value = props.telemetry[props.valueKey] as number
@@ -70,6 +72,15 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
             dataSeriesRef.current.removeAt(0)
         }
         xIndex += 0.5
+
+        // Maksimum değeri güncelle
+        if (Math.abs(value) > maxValueRef.current) {
+            maxValueRef.current = Math.abs(value)
+            // Y eksenini maksimum değerin 2 katı olarak ayarla
+            const yMax = maxValueRef.current * 2
+            const yMin = value < 0 ? -yMax : 0 // Negatif değerler varsa simetrik yap
+            yAxisRef.current.visibleRange = new NumberRange(yMin, yMax)
+        }
     }, [props.telemetry])
 
     return (

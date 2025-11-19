@@ -1,6 +1,6 @@
 // src/renderer/src/components/AltitudeChart.tsx
 import React, { useRef, useLayoutEffect, useEffect } from 'react'
-import { TelemetryData } from './interfaces' // Tipi almak için 3 seviye yukarı çık
+import { TelemetryData } from './interfaces'
 import {
     SciChartSurface,
     NumericAxis,
@@ -8,8 +8,7 @@ import {
     FastLineRenderableSeries,
     SciChartJSDarkTheme,
     NumberRange,
-    EAutoRange,
-    NumberRangeAnimator
+    EAutoRange
 } from 'scichart'
 
 // Bileşenin dışarıdan alacağı prop'ları (veriyi) tanımla
@@ -29,12 +28,10 @@ const AltitudeChart: React.FC<AltitudeChartProps> = (props) => {
     useLayoutEffect(() => {
         const initSciChart = async () => {
 
-            // Topluluk lisansını kullan (veya ücretli anahtarın varsa setRuntimeLicenseKey)
             SciChartSurface.UseCommunityLicense()
 
-            // Grafiği oluştur ve 'chartDivRef' div'ine bağla
             const { sciChartSurface, wasmContext } = await SciChartSurface.create(chartDivRef.current!)
-            sciChartSurface.applyTheme(new SciChartJSDarkTheme()) // Koyu tema
+            sciChartSurface.applyTheme(new SciChartJSDarkTheme())
 
             // X Ekseni (Zaman/Index)
             const xAxis = new NumericAxis(wasmContext, {
@@ -42,24 +39,21 @@ const AltitudeChart: React.FC<AltitudeChartProps> = (props) => {
                 visibleRangeLimit: new NumberRange(0, MAX_DATA_POINTS)
             })
 
-            // Y Ekseni (İrtifa)
             const yAxis = new NumericAxis(wasmContext, {
                 visibleRange : new NumberRange(0,150),
-                autoRange: EAutoRange.Never // Y ekseni veriye göre zoom yapsın
+                autoRange: EAutoRange.Never
             })
 
             sciChartSurface.xAxes.add(xAxis)
             sciChartSurface.yAxes.add(yAxis)
 
-            // 2. Veri serisini oluştur (X ve Y noktalarını tutar)
             const dataSeries = new XyDataSeries(wasmContext, {
-                capacity: MAX_DATA_POINTS, // Performans için kapasite belirt
+                capacity: MAX_DATA_POINTS, 
                 isSorted: true,
                 containsNaN: false
             })
-            dataSeriesRef.current = dataSeries // Daha sonra erişmek için ref'e kaydet
+            dataSeriesRef.current = dataSeries
 
-            // 3. Çizgi serisini oluştur (Veriyi ekranda çizer)
             const lineSeries = new FastLineRenderableSeries(wasmContext, {
                 dataSeries: dataSeries,
                 stroke: '#a70404ff', // Çizgi rengi
@@ -68,13 +62,11 @@ const AltitudeChart: React.FC<AltitudeChartProps> = (props) => {
 
             sciChartSurface.renderableSeries.add(lineSeries)
 
-            // Oluşturulan yüzeyi daha sonra silmek için ref'e kaydet
             sciChartRef.current = sciChartSurface
         }
 
         initSciChart()
 
-        // Cleanup: Bileşen ekrandan kaldırıldığında grafiği bellekten sil
         return () => {
             sciChartRef.current?.delete()
         }

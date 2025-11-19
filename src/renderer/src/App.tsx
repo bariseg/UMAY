@@ -3,6 +3,7 @@ import { useState, useEffect, JSX } from 'react'
 import { TelemetryData } from './components/interfaces'
 import CesiumMap from './components/CeisumMap'
 import GenericChart from './components/GenericChart'
+import SideViewChart from './components/SideViewChart'
 
 const api = window.api
 
@@ -37,13 +38,46 @@ function App(): JSX.Element {
 
       <main className="main-content">
 
-        {/* HARİTA PANELİ */}
         <div className="panel-map">
-          <h2>3D Harita (Cesium)</h2>
 
-          {/* YENİ WRAPPER (SARMALAYICI) DIV */}
+          {/* Sol Üst - Cesium Harita */}
           <div className="component-wrapper">
             <CesiumMap telemetry={telemetry} />
+          </div>
+
+          {/* Sağ Üst - Placeholder */}
+          <div className="component-wrapper">
+            <GenericChart
+              id="altitude1"
+              telemetry={telemetry}
+              valueKey="altitude"
+              color="#a70404ff"
+              yRange={[0, 150]}
+              title="İrtifa Grafiği"
+            />
+          </div>
+
+          {/* Sol Alt - Yandan Görünüm */}
+          <div className="component-wrapper">
+            <SideViewChart
+              id="side-view"
+              telemetry={telemetry}
+              yRange={[0, 150]}
+              xRange={[0, 100]}
+              title="Yandan Görünüm"
+            />
+          </div>
+
+          {/* Sağ Alt - Placeholder */}
+          <div className="component-wrapper">
+            <GenericChart
+              id="altitude3"
+              telemetry={telemetry}
+              valueKey="altitude"
+              color="#a70404ff"
+              yRange={[0, 150]}
+              title="İrtifa Grafiği"
+            />
           </div>
 
         </div>
@@ -51,8 +85,6 @@ function App(): JSX.Element {
         {/* GRAFİK PANELİ */}
         <div className="panel-charts">
 
-          <h3>Grafikler</h3>
-          {/* YENİ WRAPPER (SARMALAYICI) DIV */}
           <div className="component-wrapper">
             <GenericChart
               id="altitude"
@@ -63,7 +95,16 @@ function App(): JSX.Element {
               title="İrtifa Grafiği"
             />
           </div>
-
+          <div className="component-wrapper">
+            <GenericChart
+              id="altitude42"
+              telemetry={telemetry}
+              valueKey="altitude"
+              color="#a70404ff"
+              yRange={[0, 150]}
+              title="İrtifa Grafiği"
+            />
+          </div>
           <div className="component-wrapper">
             <GenericChart
               id="battery"

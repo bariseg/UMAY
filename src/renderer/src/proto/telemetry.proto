@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message Telemetry {
+  double altitude = 1;
+  double battery = 2;
+  double speed = 3;
+}

@@ -66,15 +66,17 @@ body {
 }
 
 /* 5. Sol Panel (Harita) */
-/* Burası (Başlık + Harita Wrapper) olarak dikey (column) bir flex yapısıdır */
+/* Burası 2x2 grid yapısında 4 parçaya bölünmüştür */
 .panel-map {
   flex: 3; /* Yatayda 3 birim yer kapla */
   padding: 10px;
   border-right: 1px solid #333;
   
-  /* ÇÖZÜMÜN ANAHTARI BURADA: */
-  display: flex;
-  flex-direction: column;
+  /* Grid yapısı: 2 sütun, 2 satır */
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* İki eşit genişlikte sütun */
+  grid-template-rows: 1fr 1fr; /* İki eşit yükseklikte satır */
+  gap: 10px; /* Bileşenler arası boşluk */
 }
 
 /* 6. Sağ Panel (Grafikler) */
@@ -88,6 +90,28 @@ body {
   gap: 10px;
   height: 100%;
   min-height: 0;
+  overflow-y: auto; /* Dikey kaydırma ekle */
+  overflow-x: hidden; /* Yatay kaydırmayı gizle */
+}
+
+/* Scrollbar stilleri - WebKit tabanlı tarayıcılar için (Chrome, Safari, Edge) */
+.panel-charts::-webkit-scrollbar {
+  width: 10px; /* Scrollbar genişliği */
+}
+
+.panel-charts::-webkit-scrollbar-track {
+  background: #1a1a1a; /* Scrollbar arka plan rengi */
+  border-radius: 5px;
+}
+
+.panel-charts::-webkit-scrollbar-thumb {
+  background: #00bfff; /* Scrollbar rengi - mavi */
+  border-radius: 5px;
+  border: 2px solid #1a1a1a; /* Kenar boşluğu efekti */
+}
+
+.panel-charts::-webkit-scrollbar-thumb:hover {
+  background: #0099cc; /* Hover durumunda daha koyu mavi */
 }
 
 .panel-charts h3 {
@@ -95,8 +119,9 @@ body {
 }
 
 .panel-charts .component-wrapper {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 0 0 300px; /* Sabit yükseklik: 4:3 oranı için 300px */
+  min-height: 300px; /* Minimum yükseklik garantisi */
+  aspect-ratio: 4 / 3; /* 4:3 en-boy oranı */
 }
 
 /* 7. Başlıklar */
