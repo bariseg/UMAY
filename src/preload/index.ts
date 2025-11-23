@@ -8,7 +8,8 @@ export interface TelemetryData {
   battery: number
   speed: number
   heading: number // Yön açısı (derece, 0-360, 0=Kuzey, 90=Doğu, 180=Güney, 270=Batı)
-
+  roll : number
+  pitch : number
 }
 
 // 2. Güvenli köprüyü kur: 'window.api'
@@ -20,7 +21,7 @@ contextBridge.exposeInMainWorld('api', {
   onDataUpdate: (callback: (data: TelemetryData) => void) => {
 
     // 'data-update' kanalını dinle
-    const listener = (event: IpcRendererEvent, data: TelemetryData) => {
+    const listener = (_event: IpcRendererEvent, data: TelemetryData) => {
       callback(data)
     }
     ipcRenderer.on('data-update', listener)

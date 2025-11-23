@@ -1,6 +1,6 @@
 // src/renderer/src/components/AltitudeChart.tsx
 import React, { useRef, useLayoutEffect, useEffect } from 'react'
-import { TelemetryData } from './interfaces'
+import { TelemetryData } from '../interfaces/interfaces'
 import {
     SciChartSurface,
     NumericAxis,

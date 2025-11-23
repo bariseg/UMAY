@@ -11,7 +11,7 @@ import {
   Math as CesiumMath
 } from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css' // CSS dosyasını import et
-import { TelemetryData } from './interfaces'
+import { TelemetryData } from '../interfaces/interfaces'
 
 // İsteğe bağlı: Daha iyi harita görselleri (arazi, binalar) için
 // https://ion.cesium.com/ adresinden ücretsiz bir token alabilirsin.

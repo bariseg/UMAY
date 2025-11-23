@@ -4,7 +4,8 @@ export interface TelemetryData {
   battery: number
   speed: number
   heading: number // Yön açısı (derece, 0-360, 0=Kuzey, 90=Doğu, 180=Güney, 270=Batı)
-
+  pitch : number
+  roll : number
 }
 
 export interface GenericChartProps {

@@ -1,5 +1,5 @@
 import React, { useRef, useLayoutEffect, useEffect } from 'react'
-import { GenericChartProps } from './interfaces'
+import { GenericChartProps } from '../interfaces/interfaces'
 import {
     SciChartSurface,
     NumericAxis,
@@ -34,7 +34,7 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
                 visibleRange: props.yRange ? new NumberRange(...props.yRange) : new NumberRange(0, 100),
                 autoRange: EAutoRange.Always,
                 axisTitle: props.yLabel || '',
-                
+                autoTicks : true
             })
             yAxisRef.current = yAxis
 

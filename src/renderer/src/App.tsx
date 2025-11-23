@@ -1,9 +1,10 @@
 // src/renderer/src/App.tsx
 import { useState, useEffect, JSX } from 'react'
-import { TelemetryData } from './components/interfaces'
+import { TelemetryData } from './interfaces/interfaces'
 import CesiumMap from './components/CeisumMap'
 import GenericChart from './components/GenericChart'
 import SideViewChart from './components/SideViewChart'
+import VirtualHorizon from './components/VirtualHorizon'
 
 const api = window.api
 
@@ -45,16 +46,9 @@ function App(): JSX.Element {
             <CesiumMap telemetry={telemetry} />
           </div>
 
-          {/* Sağ Üst - Placeholder */}
+          {/* Sağ Üst - SANAL UFUK */}
           <div className="component-wrapper">
-            <GenericChart
-              id="altitude1"
-              telemetry={telemetry}
-              valueKey="altitude"
-              color="#a70404ff"
-              yRange={[0, 150]}
-              title="İrtifa Grafiği"
-            />
+            <VirtualHorizon telemetry={telemetry} />
           </div>
 
           {/* Sol Alt - Yandan Görünüm */}
@@ -70,14 +64,7 @@ function App(): JSX.Element {
 
           {/* Sağ Alt - Placeholder */}
           <div className="component-wrapper">
-            <GenericChart
-              id="altitude3"
-              telemetry={telemetry}
-              valueKey="altitude"
-              color="#a70404ff"
-              yRange={[0, 150]}
-              title="İrtifa Grafiği"
-            />
+            "anan"
           </div>
 
         </div>
