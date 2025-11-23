@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { TelemetryData } from '../preload'
+import { SerialPort } from 'serialport' // EKLENDİ
 
 function createWindow(): void {
   // Create the browser window.
@@ -15,7 +16,7 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: true, //burasini silmemiz gerekebilir baris
+      contextIsolation: true,
       webSecurity: false
     }
   })
@@ -55,32 +56,89 @@ function createWindow(): void {
 
   // Pencere yüklendiğinde simülasyonu başlat
   mainWindow.webContents.on('did-finish-load', () => {
-    console.log('Renderer yüklendi, simülasyon başlıyor.')
-    startDataSimulation(mainWindow) // Fonksiyonu burada çağır
+    console.log('Renderer yüklendi.')
+    
+    // --- SEÇİMİNİ YAP ---
+    
+    // YÖNTEM 1: Evde test yaparken bunu aç (Sahte Veri)
+    // startDataSimulation(mainWindow) 
+
+    // YÖNTEM 2: Gerçek XBee takılıyken bunu aç
+    startXBeeConnection(mainWindow) 
+  })
+}
+
+// --- XBEE BAĞLANTI FONKSİYONU ---
+const startXBeeConnection = (window: BrowserWindow) => {
+  // DİKKAT: Bu port adını kendi bilgisayarına göre değiştirmelisin!
+  // Windows örn: 'COM3'
+  // MacOS örn: '/dev/tty.usbserial-A50285BI'
+  const path = 'COM3' 
+  const baudRate = 9600 // XBee modüllerinin varsayılan hızı genelde 9600'dür. Yapılandırmana göre 57600 veya 115200 olabilir.
+
+  console.log(`XBee aranıyor: ${path} hızı: ${baudRate}`)
+
+  const port = new SerialPort({
+    path: path,
+    baudRate: baudRate,
+    autoOpen: false, // Elle açacağız
   })
 
+  port.open((err) => {
+    if (err) {
+      return console.log('HATA: Seri port açılamadı. XBee takılı mı? ', err.message)
+    }
+    console.log('BAŞARILI: XBee seri port bağlantısı açıldı.')
+  })
+
+  // Veri geldiğinde çalışacak olay
+  port.on('data', (data: Buffer) => {
+    console.log('Gelen Ham Veri (Byte):', data)
+
+    // NOT: Burada Protobuf decode işlemi yapacaksın.
+    // Şimdilik gelen veriyi doğrudan parse etmeye çalışalım veya dummy bir yapı kuralım.
+    // Eğer veriyi JSON string olarak gönderiyorsan:
+    /*
+      try {
+        const jsonString = data.toString()
+        const parsedData = JSON.parse(jsonString)
+        window.webContents.send('data-update', parsedData)
+      } catch (e) {
+        console.log('Veri parse edilemedi (Parçalı veri gelmiş olabilir)')
+      }
+    */
+
+    // Şimdilik test için "Buffer" geldiğini konsola basıyoruz.
+    // Gerçek senaryoda burada `telemetry.proto` decode işlemini yapacaksın.
+    
+    // ÖRNEK: Veri akışını React'e göstermek için (geçici):
+    // Gerçek veriyi decode edene kadar React tarafı boş kalmasın diye
+    // gelen her byte için console log atıyoruz.
+  })
+
+  port.on('error', (err) => {
+    console.log('Seri Port Hatası: ', err.message)
+  })
 }
+// --------------------------------
 
 const startDataSimulation = (window: BrowserWindow) => {
   let altitude = 10
   let battery = 12.6
-  let lat = 41.015137 // İstanbul
+  let lat = 41.015137 
   let lon = 28.97953
-  let heading = 0 // Başlangıç yönü (0 = Kuzey)
+  let heading = 0 
 
   setInterval(() => {
-    // Veriyi rastgele güncelle
     altitude += (Math.random() - 0.5) * 1
     battery -= 0.001
     
-    // Heading'i yavaşça döndür (simüle edilmiş hareket)
-    heading += (Math.random() - 0.5) * 5 // Her turda -2.5 ile +2.5 derece arası değişim
+    heading += (Math.random() - 0.5) * 5 
     if (heading < 0) heading += 360
     if (heading >= 360) heading -= 360
     
-    // GPS konumunu heading yönünde hareket ettir
     const headingRad = (heading * Math.PI) / 180
-    const moveDistance = 0.00002 // ~2 metre
+    const moveDistance = 0.00002 
     lat += moveDistance * Math.cos(headingRad)
     lon += moveDistance * Math.sin(headingRad)
 
@@ -89,14 +147,14 @@ const startDataSimulation = (window: BrowserWindow) => {
       altitude: parseFloat(altitude.toFixed(2)),
       battery: parseFloat(battery.toFixed(2)),
       speed: parseFloat((20 + (Math.random() - 0.5) * 2).toFixed(2)),
-      heading: parseFloat(heading.toFixed(1)) // Yön açısı (0-360 derece)
+      heading: parseFloat(heading.toFixed(1)) 
     }
 
     // Veriyi 'data-update' kanalı üzerinden Renderer'a gönder
     if (window && !window.isDestroyed()) {
       window.webContents.send('data-update', telemetryData)
     }
-  }, 500) // Saniyede 2 kez
+  }, 500) 
 }
 
 
@@ -109,21 +167,15 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
 
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })

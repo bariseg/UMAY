@@ -33,7 +33,8 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
             const yAxis = new NumericAxis(wasmContext, {
                 visibleRange: props.yRange ? new NumberRange(...props.yRange) : new NumberRange(0, 100),
                 autoRange: EAutoRange.Always,
-                axisTitle: props.yLabel || ''
+                axisTitle: props.yLabel || '',
+                
             })
             yAxisRef.current = yAxis
 
@@ -44,6 +45,7 @@ const GenericChart: React.FC<GenericChartProps> = (props) => {
                 capacity: MAX_DATA_POINTS,
                 isSorted: true,
                 containsNaN: false
+                
             })
             dataSeriesRef.current = dataSeries
 
