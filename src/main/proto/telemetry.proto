@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// Paket adı (Kod içinde bu isimle çağıracağız)
+package iha_telemetry;
+
+// Veri yapısı
+message FlightData {
+  // GPS Koordinatları (Hassasiyet için double kullanılır)
+  double latitude = 1;  // Enlem
+  double longitude = 2; // Boylam
+
+  // Uçuş Verileri (float yeterlidir)
+  float altitude = 3;   // Yükseklik (metre)
+  float speed = 4;      // Hız (m/s)
+  float heading = 5;    // Yön (0-360 derece) - Haritada İHA'yı döndürmek için
+  
+  // Donanım Durumu
+  float battery = 6;    // Batarya Voltajı (V)
+  
+  // Zaman Damgası (SciChart grafikleri için şart)
+  int64 timestamp = 7;  // Unix Timestamp (ms cinsinden)
+}

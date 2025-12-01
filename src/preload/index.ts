@@ -12,6 +12,13 @@ export interface TelemetryData {
   pitch : number
 }
 
+export interface ConnectionStatus {
+  status: 'connected' | 'disconnected' | 'connecting'
+  portName?: string
+  message?: string
+}
+
+
 // 2. Güvenli köprüyü kur: 'window.api'
 contextBridge.exposeInMainWorld('api', {
   /**

@@ -2,8 +2,11 @@ import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { TelemetryData } from '../preload'
-//import { SerialPort } from 'serialport' // EKLENDİ
+import { TelemetryData } from '../preload/index'
+import { SerialPort } from 'serialport'
+// import { iha_telemetry } from './proto/telemetry'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import * as proto from './proto/telemetry'
 
 function createWindow(): void {
   // Create the browser window.
@@ -58,72 +61,117 @@ function createWindow(): void {
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('Renderer yüklendi.')
 
-    // --- SEÇİMİNİ YAP ---
-
-    // YÖNTEM 1: Evde test yaparken bunu aç (Sahte Veri)
-    startDataSimulation(mainWindow)
-
-    // YÖNTEM 2: Gerçek XBee takılıyken bunu aç
-    //startXBeeConnection(mainWindow) 
+    //startDataSimulation(mainWindow)
+    startXBeeConnection(mainWindow)
   })
 }
+const XBEE_VENDOR_IDS = ['10c4', '0403', '2341']
 
-// --- XBEE BAĞLANTI FONKSİYONU ---
-/* const startXBeeConnection = (_window: BrowserWindow) => {
-  // DİKKAT: Bu port adını kendi bilgisayarına göre değiştirmelisin!
-  // Windows örn: 'COM3'
-  // MacOS örn: '/dev/tty.usbserial-A50285BI'
-  const path = 'COM3'
-  const baudRate = 9600 // XBee modüllerinin varsayılan hızı genelde 9600'dür. Yapılandırmana göre 57600 veya 115200 olabilir.
+async function findXBeePortPath(): Promise<string | null> {
+  try {
+    // 1. Tüm aktif seri portları listele
+    const ports = await SerialPort.list()
 
-  console.log(`XBee aranıyor: ${path} hızı: ${baudRate}`)
+    console.log('Bulunan Tüm Portlar:', ports.map(p => `${p.path} (${p.manufacturer})`))
+
+    // 2. Listeyi filtrele: Bizim Vendor ID'lerden biriyle eşleşen var mı?
+    const foundPort = ports.find(port => {
+      // vendorId bazen undefined olabilir, kontrol ediyoruz
+      if (!port.vendorId) return false
+
+      return XBEE_VENDOR_IDS.includes(port.vendorId.toLowerCase())
+    })
+
+    if (foundPort) {
+      console.log(`OTOMATİK TESPİT: XBee cihazı ${foundPort.path} üzerinde bulundu.`)
+      return foundPort.path
+    } else {
+      console.warn('UYARI: Bilinen bir XBee adaptörü bulunamadı. İlk uygun port denenecek...')
+
+      // Eğer spesifik ID bulamazsak, "Bluetooth" olmayan ilk USB portunu döndür
+      // MacOS'ta bluetooth portları çok kalabalık yapar.
+      const fallbackPort = ports.find(p => !p.path.includes('Bluetooth') && (p.path.includes('usb') || p.path.includes('COM')))
+      return fallbackPort ? fallbackPort.path : null
+    }
+
+  } catch (err) {
+    console.error('Port tarama hatası:', err)
+    return null
+  }
+}
+
+
+const startXBeeConnection = async (window: BrowserWindow) => {
+
+  console.log('XBee modülü aranıyor...')
+
+  // Otomatik port bulucuyu çağır
+  const autoPath = await findXBeePortPath()
+
+  if (!autoPath) {
+    console.error('HATA: Hiçbir uygun seri port bulunamadı! Lütfen XBee bağlantısını kontrol edin.')
+    // Kullanıcıya hata gönderebilirsin
+    return
+  }
+
+  const baudRate = 9600
 
   const port = new SerialPort({
-    path: path,
+    path: autoPath, // Artık hardcoded 'COM3' değil, bulunan portu kullanıyoruz
     baudRate: baudRate,
-    autoOpen: false, // Elle açacağız
+    autoOpen: false,
   })
 
   port.open((err) => {
-    if (err) {
-      return console.log('HATA: Seri port açılamadı. XBee takılı mı? ', err.message)
-    }
-    console.log('BAŞARILI: XBee seri port bağlantısı açıldı.')
+    if (err) console.log('Port açma hatası:', err.message)
+    else console.log('Port açıldı, veri bekleniyor...')
   })
 
-  // Veri geldiğinde çalışacak olay
   port.on('data', (data: Buffer) => {
-    console.log('Gelen Ham Veri (Byte):', data)
+    try {
+      // Gelen Buffer verisini Protobuf ile çöz
+      // 'FlightData', .proto dosyasındaki 'message FlightData' ismidir.
+      const decodedMessage = proto.iha_telemetry.FlightData.decode(data)
 
-    // NOT: Burada Protobuf decode işlemi yapacaksın.
-    // Şimdilik gelen veriyi doğrudan parse etmeye çalışalım veya dummy bir yapı kuralım.
-    // Eğer veriyi JSON string olarak gönderiyorsan:
-    
-    //  try {
-    //    const jsonString = data.toString()
-    //    const parsedData = JSON.parse(jsonString)
-    //    window.webContents.send('data-update', parsedData)
-    //  } catch (e) {
-    //    console.log('Veri parse edilemedi (Parçalı veri gelmiş olabilir)')
-    //  }
-    
+      // Protobuf mesajını normal JavaScript objesine çevir
+      const objectData = proto.iha_telemetry.FlightData.toObject(decodedMessage, {
+        longs: Number, // int64 sayılarını Number'a çevir
+        enums: String,
+        bytes: String,
+      })
 
-    // Şimdilik test için "Buffer" geldiğini konsola basıyoruz.
-    // Gerçek senaryoda burada `telemetry.proto` decode işlemini yapacaksın.
+      console.log('Çözülen Veri:', objectData)
 
-    // ÖRNEK: Veri akışını React'e göstermek için (geçici):
-    // Gerçek veriyi decode edene kadar React tarafı boş kalmasın diye
-    // gelen her byte için console log atıyoruz.
-  })
+      // Map to TelemetryData interface
+      const telemetryData: TelemetryData = {
+        gps: {
+          lat: objectData.latitude || 0,
+          lon: objectData.longitude || 0
+        },
+        altitude: objectData.altitude || 0,
+        battery: objectData.battery || 0,
+        speed: objectData.speed || 0,
+        heading: objectData.heading || 0,
+        roll: 0, // Not in proto
+        pitch: 0 // Not in proto
+      }
 
-  port.on('error', (err) => {
-    console.log('Seri Port Hatası: ', err.message)
+      // React tarafına gönder
+      if (window && !window.isDestroyed()) {
+        window.webContents.send('data-update', telemetryData)
+      }
+
+    } catch (e) {
+      // Veri parçalı geldiyse decode hata verir, bu normaldir.
+      // İleride buraya "packet framing" ekleyeceğiz.
+      // console.log('Paket tamamlanmadı veya hatalı:', e)
+    }
   })
 }
- */
+
 
 // --------------------------------
-
+/* 
 const startDataSimulation = (window: BrowserWindow) => {
   let altitude = 10
   let battery = 12.6
@@ -163,9 +211,9 @@ const startDataSimulation = (window: BrowserWindow) => {
     if (window && !window.isDestroyed()) {
       window.webContents.send('data-update', telemetryData)
     }
-  }, 500)
+  }, 100)
 }
-
+ */
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

@@ -64,7 +64,7 @@ function App(): JSX.Element {
 
           {/* Sağ Alt - Placeholder */}
           <div className="component-wrapper">
-            "anan"
+          
           </div>
 
         </div>
