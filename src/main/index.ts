@@ -4,9 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { TelemetryData } from '../preload/index'
 import { SerialPort } from 'serialport'
-// import { iha_telemetry } from './proto/telemetry'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-import * as proto from './proto/telemetry'
+import { iha_telemetry } from './proto/telemetry'
+
 
 function createWindow(): void {
   // Create the browser window.
@@ -100,7 +99,7 @@ async function findXBeePortPath(): Promise<string | null> {
   }
 }
 
-
+/* 
 const startXBeeConnection = async (window: BrowserWindow) => {
 
   console.log('XBee modülü aranıyor...')
@@ -129,6 +128,8 @@ const startXBeeConnection = async (window: BrowserWindow) => {
 
   port.on('data', (data: Buffer) => {
     try {
+
+      console.log('Gelen Ham Veri (Buffer):', data)
       // Gelen Buffer verisini Protobuf ile çöz
       // 'FlightData', .proto dosyasındaki 'message FlightData' ismidir.
       const decodedMessage = proto.iha_telemetry.FlightData.decode(data)
@@ -167,10 +168,85 @@ const startXBeeConnection = async (window: BrowserWindow) => {
       // console.log('Paket tamamlanmadı veya hatalı:', e)
     }
   })
+}  */
+
+// Buffer yönetimi için global değişken (Fonksiyonun dışında değil, içinde tanımlı kalsın ki her bağlantıda sıfırlansın)
+const startXBeeConnection = async (window: BrowserWindow) => {
+  console.log('XBee modülü aranıyor...')
+
+  const autoPath = await findXBeePortPath()
+  if (!autoPath) return
+
+  // Sınıf kontrolü (Artık import doğrudan çalıştığı için bu basit kontrol yeterli)
+  if (!iha_telemetry || !iha_telemetry.FlightData) {
+    console.error('🛑 KRİTİK HATA: FlightData sınıfı import edilemedi!');
+    return;
+  }
+
+  console.log('✅ FlightData Sınıfı Başarıyla Yüklendi!');
+
+  const port = new SerialPort({
+    path: autoPath,
+    baudRate: 9600,
+    autoOpen: false,
+  })
+
+  let incomingBuffer = Buffer.alloc(0);
+
+  port.open((err) => {
+    if (err) return console.log('Port hatası:', err.message);
+    console.log(`BAŞARILI: ${autoPath} dinleniyor.`);
+    port.set({ rts: true, dtr: true });
+  })
+
+  port.on('data', (chunk: Buffer) => {
+    incomingBuffer = Buffer.concat([incomingBuffer, chunk]);
+
+    while (true) {
+      if (incomingBuffer.length < 4) break;
+      const messageLength = incomingBuffer.readUInt32BE(0);
+      if (incomingBuffer.length < 4 + messageLength) break;
+
+      const messageBuffer = incomingBuffer.subarray(4, 4 + messageLength);
+
+      try {
+        // --- DECODE ---
+        // Doğrudan import ettiğimiz sınıfı kullanıyoruz
+        const decodedMessage = iha_telemetry.FlightData.decode(messageBuffer);
+
+        const objectData = iha_telemetry.FlightData.toObject(decodedMessage, {
+          longs: Number,
+          enums: String,
+          bytes: String,
+        });
+
+        const telemetryData: TelemetryData = {
+          gps: {
+            lat: objectData.latitude || 0,
+            lon: objectData.longitude || 0
+          },
+          altitude: objectData.altitude || 0,
+          battery: objectData.battery || 0,
+          speed: objectData.speed || 0,
+          heading: objectData.heading || 0,
+          roll: 0,
+          pitch: 0
+        };
+
+        if (window && !window.isDestroyed()) {
+          window.webContents.send('data-update', telemetryData);
+        }
+
+      } catch (e) {
+        console.error('Decode Hatası:', e);
+      }
+
+      incomingBuffer = incomingBuffer.subarray(4 + messageLength);
+    }
+  });
 }
 
-
-// --------------------------------
+// simülasyon için
 /* 
 const startDataSimulation = (window: BrowserWindow) => {
   let altitude = 10

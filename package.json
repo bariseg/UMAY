@@ -20,7 +20,9 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "proto1" : "npx pbjs -t static-module -w commonjs -o src/main/proto/telemetry.js src/main/proto/telemetry.proto",
-    "proto2" : "npx pbts -o src/main/proto/telemetry.d.ts src/main/proto/telemetry.js"
+    "proto2" : "npx pbts -o src/main/proto/telemetry.d.ts src/main/proto/telemetry.js",
+    "proto3" : "npx pbjs -t static-module -w es6 -o src/main/proto/telemetry.js src/main/proto/telemetry.proto",
+    "proto4" : "npx pbts -o src/main/proto/telemetry.d.ts src/main/proto/telemetry.js"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

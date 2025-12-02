@@ -1,20 +1,22 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import * as $protobuf from "protobufjs/minimal";
+"use strict";
+
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
-const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export const iha_telemetry = $root.iha_telemetry = (() => {
+$root.iha_telemetry = (function() {
 
     /**
      * Namespace iha_telemetry.
      * @exports iha_telemetry
      * @namespace
      */
-    const iha_telemetry = {};
+    var iha_telemetry = {};
 
     iha_telemetry.FlightData = (function() {
 
@@ -41,7 +43,7 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
          */
         function FlightData(properties) {
             if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -170,9 +172,9 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
         FlightData.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.iha_telemetry.FlightData();
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.iha_telemetry.FlightData();
             while (reader.pos < end) {
-                let tag = reader.uint32();
+                var tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
@@ -274,7 +276,7 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
         FlightData.fromObject = function fromObject(object) {
             if (object instanceof $root.iha_telemetry.FlightData)
                 return object;
-            let message = new $root.iha_telemetry.FlightData();
+            var message = new $root.iha_telemetry.FlightData();
             if (object.latitude != null)
                 message.latitude = Number(object.latitude);
             if (object.longitude != null)
@@ -311,7 +313,7 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
         FlightData.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.latitude = 0;
                 object.longitude = 0;
@@ -320,7 +322,7 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
                 object.heading = 0;
                 object.battery = 0;
                 if ($util.Long) {
-                    let long = new $util.Long(0, 0, false);
+                    var long = new $util.Long(0, 0, false);
                     object.timestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.timestamp = options.longs === String ? "0" : 0;
@@ -377,4 +379,4 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
     return iha_telemetry;
 })();
 
-export { $root as default };
+module.exports = $root;
