@@ -13,14 +13,19 @@ export interface TelemetryData {
 }
 
 export interface ConnectionStatus {
-  status: 'connected' | 'disconnected' | 'connecting'
-  portName?: string
+  status: 'connected' | 'disconnected' | 'connecting' | 'error'
   message?: string
 }
 
-
 // 2. Güvenli köprüyü kur: 'window.api'
 contextBridge.exposeInMainWorld('api', {
+  connect: () => ipcRenderer.send('connect'),
+  disconnect: () => ipcRenderer.send('disconnect'),
+  onConnectionStatus: (callback: (status: ConnectionStatus) => void) => {
+    const listener = (_event: IpcRendererEvent, status: ConnectionStatus) => callback(status)
+    ipcRenderer.on('connection-status', listener)
+    return () => ipcRenderer.removeListener('connection-status', listener)
+  },
   /**
    * Main process'ten gelen 'data-update' kanalını dinler.
    * Gelen veriyi bir callback fonksiyonu ile React bileşenine iletir.

@@ -1,6 +1,6 @@
 // src/renderer/src/App.tsx
 import { useState, useEffect, JSX } from 'react'
-import { TelemetryData } from './interfaces/interfaces'
+import { TelemetryData, ConnectionStatus } from './interfaces/interfaces'
 import CesiumMap from './components/CeisumMap'
 import GenericChart from './components/GenericChart'
 import SideViewChart from './components/SideViewChart'
@@ -11,21 +11,56 @@ const api = window.api
 function App(): JSX.Element {
   // Gelen telemetri verisini tutacağımız 'state'
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ status: 'disconnected' })
+
   useEffect(() => {
     const cleanupListener = api.onDataUpdate((data) => {
       setTelemetry(data)
     })
+    const cleanupStatus = api.onConnectionStatus((status) => {
+      setConnectionStatus(status)
+    })
     return () => {
       cleanupListener()
+      cleanupStatus()
     }
   }, [])
+
+  const handleConnectToggle = () => {
+    if (connectionStatus.status === 'connected' || connectionStatus.status === 'connecting') {
+      api.disconnect()
+    } else {
+      api.connect()
+    }
+  }
 
   return (
     <div className="layout-container">
       {/* ÜST BAR */}
       <header className="header-bar">
         <h1>UMAY Sistem - GTU KUZGUN</h1>
-        <span>Baglanti</span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={handleConnectToggle}
+            disabled={connectionStatus.status === 'connecting'}
+            style={{
+              padding: '5px 15px',
+              backgroundColor: connectionStatus.status === 'connected' ? '#d32f2f' : '#2e7d32',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            {connectionStatus.status === 'connected' ? 'Bağlantıyı Kes' : 'Bağlan'}
+          </button>
+          <span style={{ fontSize: '0.9em', color: '#ccc' }}>
+            {connectionStatus.status === 'connected' ? '🟢 Bağlı' :
+              connectionStatus.status === 'connecting' ? '🟡 Bağlanıyor...' :
+                connectionStatus.status === 'error' ? `🔴 Hata: ${connectionStatus.message}` : '⚪️ Bağlantı Yok'}
+          </span>
+        </div>
 
         <div className="telemetry-display">
 
@@ -64,7 +99,7 @@ function App(): JSX.Element {
 
           {/* Sağ Alt - Placeholder */}
           <div className="component-wrapper">
-          
+
           </div>
 
         </div>

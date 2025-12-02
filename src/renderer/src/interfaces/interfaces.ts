@@ -8,6 +8,11 @@ export interface TelemetryData {
   roll : number
 }
 
+export interface ConnectionStatus {
+  status: 'connected' | 'disconnected' | 'connecting' | 'error'
+  message?: string
+}
+
 export interface GenericChartProps {
   telemetry: TelemetryData | null
   id: string
