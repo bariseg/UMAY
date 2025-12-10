@@ -24,7 +24,7 @@ const VirtualHorizon: React.FC<VirtualHorizonProps> = ({ telemetry }) => {
         <div style={styles.container}>
             {/* Dış Çerçeve (Tam Boyut Dikdörtgen) */}
             <div style={styles.instrumentCase}>
-                
+
                 <div style={styles.title}>SANAL UFUK</div>
 
                 {/* Hareketli Ufuk Katmanı (Gökyüzü ve Yer) */}

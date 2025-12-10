@@ -26,6 +26,12 @@ export namespace iha_telemetry {
 
         /** FlightData timestamp */
         timestamp?: (number|Long|null);
+
+        /** FlightData roll */
+        roll?: (number|null);
+
+        /** FlightData pitch */
+        pitch?: (number|null);
     }
 
     /** Represents a FlightData. */
@@ -57,6 +63,12 @@ export namespace iha_telemetry {
 
         /** FlightData timestamp. */
         public timestamp: (number|Long);
+
+        /** FlightData roll. */
+        public roll: number;
+
+        /** FlightData pitch. */
+        public pitch: number;
 
         /**
          * Creates a new FlightData instance using the specified properties.

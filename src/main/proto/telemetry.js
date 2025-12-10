@@ -29,6 +29,8 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
          * @property {number|null} [heading] FlightData heading
          * @property {number|null} [battery] FlightData battery
          * @property {number|Long|null} [timestamp] FlightData timestamp
+         * @property {number|null} [roll] FlightData roll
+         * @property {number|null} [pitch] FlightData pitch
          */
 
         /**
@@ -103,6 +105,22 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
         FlightData.prototype.timestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
+         * FlightData roll.
+         * @member {number} roll
+         * @memberof iha_telemetry.FlightData
+         * @instance
+         */
+        FlightData.prototype.roll = 0;
+
+        /**
+         * FlightData pitch.
+         * @member {number} pitch
+         * @memberof iha_telemetry.FlightData
+         * @instance
+         */
+        FlightData.prototype.pitch = 0;
+
+        /**
          * Creates a new FlightData instance using the specified properties.
          * @function create
          * @memberof iha_telemetry.FlightData
@@ -140,6 +158,10 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
                 writer.uint32(/* id 6, wireType 5 =*/53).float(message.battery);
             if (message.timestamp != null && Object.hasOwnProperty.call(message, "timestamp"))
                 writer.uint32(/* id 7, wireType 0 =*/56).int64(message.timestamp);
+            if (message.roll != null && Object.hasOwnProperty.call(message, "roll"))
+                writer.uint32(/* id 8, wireType 5 =*/69).float(message.roll);
+            if (message.pitch != null && Object.hasOwnProperty.call(message, "pitch"))
+                writer.uint32(/* id 9, wireType 5 =*/77).float(message.pitch);
             return writer;
         };
 
@@ -204,6 +226,14 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
                         message.timestamp = reader.int64();
                         break;
                     }
+                case 8: {
+                        message.roll = reader.float();
+                        break;
+                    }
+                case 9: {
+                        message.pitch = reader.float();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -260,6 +290,12 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
             if (message.timestamp != null && message.hasOwnProperty("timestamp"))
                 if (!$util.isInteger(message.timestamp) && !(message.timestamp && $util.isInteger(message.timestamp.low) && $util.isInteger(message.timestamp.high)))
                     return "timestamp: integer|Long expected";
+            if (message.roll != null && message.hasOwnProperty("roll"))
+                if (typeof message.roll !== "number")
+                    return "roll: number expected";
+            if (message.pitch != null && message.hasOwnProperty("pitch"))
+                if (typeof message.pitch !== "number")
+                    return "pitch: number expected";
             return null;
         };
 
@@ -296,6 +332,10 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
                     message.timestamp = object.timestamp;
                 else if (typeof object.timestamp === "object")
                     message.timestamp = new $util.LongBits(object.timestamp.low >>> 0, object.timestamp.high >>> 0).toNumber();
+            if (object.roll != null)
+                message.roll = Number(object.roll);
+            if (object.pitch != null)
+                message.pitch = Number(object.pitch);
             return message;
         };
 
@@ -324,6 +364,8 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
                     object.timestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.timestamp = options.longs === String ? "0" : 0;
+                object.roll = 0;
+                object.pitch = 0;
             }
             if (message.latitude != null && message.hasOwnProperty("latitude"))
                 object.latitude = options.json && !isFinite(message.latitude) ? String(message.latitude) : message.latitude;
@@ -342,6 +384,10 @@ export const iha_telemetry = $root.iha_telemetry = (() => {
                     object.timestamp = options.longs === String ? String(message.timestamp) : message.timestamp;
                 else
                     object.timestamp = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp) : options.longs === Number ? new $util.LongBits(message.timestamp.low >>> 0, message.timestamp.high >>> 0).toNumber() : message.timestamp;
+            if (message.roll != null && message.hasOwnProperty("roll"))
+                object.roll = options.json && !isFinite(message.roll) ? String(message.roll) : message.roll;
+            if (message.pitch != null && message.hasOwnProperty("pitch"))
+                object.pitch = options.json && !isFinite(message.pitch) ? String(message.pitch) : message.pitch;
             return object;
         };
 

@@ -3,8 +3,9 @@ import { useState, useEffect, JSX } from 'react'
 import { TelemetryData, ConnectionStatus } from './interfaces/interfaces'
 import CesiumMap from './components/CeisumMap'
 import GenericChart from './components/GenericChart'
-import SideViewChart from './components/SideViewChart'
+//import SideViewChart from './components/SideViewChart'
 import VirtualHorizon from './components/VirtualHorizon'
+import WebGPUSideView from './components/SideViewWebGPU'
 
 const api = window.api
 
@@ -56,18 +57,20 @@ function App(): JSX.Element {
             {connectionStatus.status === 'connected' ? 'Bağlantıyı Kes' : 'Bağlan'}
           </button>
           <span style={{ fontSize: '0.9em', color: '#ccc' }}>
-            {connectionStatus.status === 'connected' ? '🟢 Bağlı' :
-              connectionStatus.status === 'connecting' ? '🟡 Bağlanıyor...' :
-                connectionStatus.status === 'error' ? `🔴 Hata: ${connectionStatus.message}` : '⚪️ Bağlantı Yok'}
+            {
+              connectionStatus.status === 'connected' ? 'Bağlı' :
+                connectionStatus.status === 'connecting' ? 'Bağlanıyor...' :
+                  connectionStatus.status === 'error' ? `Hata: ${connectionStatus.message}` : 'Bağlantı Yok'
+            }
           </span>
         </div>
 
         <div className="telemetry-display">
 
           {/* Anlık sayısal verileri göster */}
-          <span>İrtifa: {telemetry?.altitude.toFixed(1) ?? '...'} m</span>
+          {/* <span>İrtifa: {telemetry?.altitude.toFixed(1) ?? '...'} m</span>
           <span>Batarya: {telemetry?.battery.toFixed(2) ?? '...'} V</span>
-          <span>Hız: {telemetry?.speed.toFixed(1) ?? '...'} km/s</span>
+          <span>Hız: {telemetry?.speed.toFixed(1) ?? '...'} km/s</span> */}
 
         </div>
       </header>
@@ -88,18 +91,27 @@ function App(): JSX.Element {
 
           {/* Sol Alt - Yandan Görünüm */}
           <div className="component-wrapper">
-            <SideViewChart
+            {/* <SideViewChart
               id="side-view"
               telemetry={telemetry}
               yRange={[0, 150]}
               xRange={[0, 100]}
               title="Yandan Görünüm"
             />
+ */}
+            <WebGPUSideView
+              telemetry={telemetry}
+              id='side-view'
+              title='Yandan Görünüm'
+              yRange={[0, 150]}
+            />
+
+
           </div>
 
           {/* Sağ Alt - Placeholder */}
           <div className="component-wrapper">
-
+            buraya kamera görüntüsü gelebilir
           </div>
 
         </div>
@@ -117,16 +129,7 @@ function App(): JSX.Element {
               title="İrtifa Grafiği"
             />
           </div>
-          <div className="component-wrapper">
-            <GenericChart
-              id="altitude42"
-              telemetry={telemetry}
-              valueKey="altitude"
-              color="#a70404ff"
-              yRange={[0, 150]}
-              title="İrtifa Grafiği"
-            />
-          </div>
+
           <div className="component-wrapper">
             <GenericChart
               id="battery"
@@ -137,7 +140,6 @@ function App(): JSX.Element {
               title="Batarya Voltajı"
             />
           </div>
-
 
         </div>
       </main>

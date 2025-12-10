@@ -8,14 +8,16 @@ import {
   Color,
   SampledPositionProperty,
   JulianDate,
-  Math as CesiumMath
+  Math as CesiumMath,
+  Ion
 } from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css' // CSS dosyasını import et
 import { TelemetryData } from '../interfaces/interfaces'
 
-// İsteğe bağlı: Daha iyi harita görselleri (arazi, binalar) için
-// https://ion.cesium.com/ adresinden ücretsiz bir token alabilirsin.
-// Ion.defaultAccessToken = 'SENIN_TOKENIN_BURAYA';
+// Cesium Ion Token (Ücretsiz)
+// Token .env dosyasından çekilir (VITE_CESIUM_TOKEN)
+Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN
+
 
 interface MapProps {
   telemetry: TelemetryData | null
@@ -41,8 +43,7 @@ const CesiumMap: React.FC<MapProps> = ({ telemetry }) => {
         baseLayerPicker: false,
         sceneModePicker: false,
         infoBox: false,
-        selectionIndicator: false,
-
+        selectionIndicator: false
       })
 
       // SampledPositionProperty ile akıcı pozisyon (Linear interpolation için)
